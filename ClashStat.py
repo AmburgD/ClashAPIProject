@@ -1,15 +1,8 @@
 import urllib.parse
-import requests
-from dotenv import load_dotenv
-import os
 import urllib
-import pandas as pd
-import json
-
-
-load_dotenv()
-
-KEY = os.getenv("API_KEY")
+import os
+from clash_stat_functions import getClan, getPlayerDat, json_to_excel
+from pathlib import Path
 
 # print(KEY)
 
@@ -30,46 +23,23 @@ else:
     print(f"Folder '{folder_name}' already exists.")
 
 
-headers = {
-    "Accept" : "applicatipon/json",
-    "authorization" : "Bearer " + KEY
-}
+
 
 baseID = "#QLCJYJLVJ"
-baseIDParse = urllib.parse.quote(baseID)
 
-def getPlayerDat(baseIDParse):
-    # print (URL)
-    playerData = requests.get("https://api.clashofclans.com/v1/players/"+baseIDParse, headers=headers)
-    # print(playerData.json())
 
-    playerResponse = playerData.json()
 
-    # Open the file in write mode ('w')
-    with open('CoC_Json\CoC_Dat.json', 'w') as f:
-        # Convert the response dictionary to a JSON-formatted string and write it to the file
-        json.dump(playerResponse, f, indent=4)  # `indent=4` is optional; it just makes the JSON file readable
-    clanTag = playerResponse['clan']['tag']
-    clanName = playerResponse['clan']['name']
-    return  clanTag, clanName
+def main():
+    baseIDParse = urllib.parse.quote(baseID)
 
-# print(response['clan']['name'])
-clanTag,clanName = getPlayerDat(baseIDParse)
+    # print(response['clan']['name'])
+    clanTag,clanName = getPlayerDat(baseIDParse)
+    clanNameParse = urllib.parse.quote(clanName)
+    # print(clanNameParse)
+    getClan(clanNameParse, clanTag)
+    json_to_excel(r'CoC_Json\\CoC_Dat.json', r'CoC_Json\\CoC_Dat.xlsx', sheet_name="PlayerData")
+    json_to_excel(r'CoC_Json\\CoC_Clan_Dat.json', r'CoC_Json\\CoC_Clan_Dat.xlsx', sheet_name="ClanData")
 
-clanNameParse = urllib.parse.quote(clanName)
-print(clanNameParse)
 
-def getClan(clanNameParse):
-    clanData = requests.get("https://api.clashofclans.com/v1/clans?name=" + clanNameParse, headers=headers)
-
-    clanResponse = clanData.json()
-
-    for clan in clanResponse['items']:
-        # print(clan['tag'])
-        if(clan['tag'] == clanTag):
-            # Open the file in write mode ('w')
-            with open('CoC_Json\CoC_Clan_Dat.json', 'w') as f:
-                # Convert the response dictionary to a JSON-formatted string and write it to the file
-                json.dump(clan, f, indent=4)  # `indent=4` is optional; it just makes the JSON file readable
-
-getClan(clanNameParse=clanNameParse)
+if __name__ == "__main__":
+    main()
